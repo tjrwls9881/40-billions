@@ -1,4 +1,4 @@
-package com.billions.forty.user.mapper;
+package com.billions.forty.user.repository;
 
 import com.billions.forty.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
