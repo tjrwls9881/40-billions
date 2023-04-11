@@ -24,6 +24,7 @@ public class UserDto {
     @AllArgsConstructor
     @Getter
     public static class UserResponseDto{
+        private Long userId;
         private String id;
         private String nickname;
         private String email;

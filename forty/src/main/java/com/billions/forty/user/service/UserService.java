@@ -1,5 +1,6 @@
 package com.billions.forty.user.service;
 
+import com.billions.forty.auth.utils.CustomAuthorityUtils;
 import com.billions.forty.exception.BusinessLogicException;
 import com.billions.forty.exception.ExceptionCode;
 import com.billions.forty.user.entity.User;
@@ -10,8 +11,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,12 +23,21 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-
+    private final PasswordEncoder passwordEncoder;
+    private final CustomAuthorityUtils authorityUtils;
 //    public UserService(UserRepository userRepository){
 //        this.userRepository=userRepository;
 //    }
 
     public User createdUser(User user){
+        verifyExistsEmail(user.getEmail());
+
+        String password=user.getPassword();
+        String encryptedPassword=passwordEncoder.encode(password);
+        user.setPassword(encryptedPassword);
+        List<String> roles=authorityUtils.createRoles(user.getEmail());
+        user.setRoles(roles);
+
         User CreatedUser=userRepository.save(user);
 
         return CreatedUser;
@@ -35,7 +47,7 @@ public class UserService {
         return findVerifiedUser(userId);
     }
 
-    private User findVerifiedUser(long userId){
+   public User findVerifiedUser(long userId){
         Optional<User> newUser=userRepository.findById(userId);
         User findUser=newUser.orElseThrow(()->
                 new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
@@ -64,4 +76,16 @@ public class UserService {
     public Page<User> findUsers(int page, int size) {
         return userRepository.findAll(PageRequest.of(page, size, Sort.by("userId").descending()));
     }
+
+    public User findVerifiedEmail(String email) {
+        Optional<User> findMember = userRepository.findByEmail(email);
+        return findMember.orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+    }
+
+    private void verifyExistsEmail(String email){
+        Optional<User> member= userRepository.findByEmail(email);
+        if(member.isPresent())
+            throw new BusinessLogicException(ExceptionCode.USER_EXISTS);
+    }
+
 }
