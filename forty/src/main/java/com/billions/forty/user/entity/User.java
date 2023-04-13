@@ -1,5 +1,6 @@
 package com.billions.forty.user.entity;
 
+import com.billions.forty.auth.board.entity.Board;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,6 +34,9 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String phone;
+
+    @OneToMany(mappedBy = "user")
+    private List<Board> orders = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles = new ArrayList<>();
